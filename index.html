@@ -209,6 +209,12 @@ async function fetchTable(table, noteCol){
     note: r[noteCol] || ''
   }));
 }
+let maxWords = { si:1, en:1 };
+function computeMaxWords(map){
+  let max = 1;
+  map.forEach((_, k)=>{ const n = k.split(' ').length; if(n > max) max = n; });
+  return max;
+}
 async function loadAll(){
   const [si, en] = await Promise.all([
     fetchTable('sinhala_dictionary', 'note'),
@@ -217,6 +223,8 @@ async function loadAll(){
   dict.si = si; dict.en = en;
   dictMap.si = new Map(si.map(e => [norm(e.word), e]));
   dictMap.en = new Map(en.map(e => [norm(e.word), e]));
+  maxWords.si = computeMaxWords(dictMap.si);
+  maxWords.en = computeMaxWords(dictMap.en);
 }
 
 /* ---------- suggestions (word field only) ---------- */
@@ -288,21 +296,36 @@ const WORD_RE = /[\p{L}\p{M}]+/gu;
 function xrefFragment(text, selfNorm){
   const frag = document.createDocumentFragment();
   const map = dictMap[lang];
-  let last = 0, m;
+  const limit = maxWords[lang] || 1;
+
+  // collect every word token with its position in the text
+  const tokens = [];
   WORD_RE.lastIndex = 0;
-  while((m = WORD_RE.exec(text))){
-    const token = m[0], start = m.index, end = start + token.length;
-    const key = norm(token);
-    if(last < start) frag.appendChild(document.createTextNode(text.slice(last, start)));
-    const hit = key && key !== selfNorm ? map.get(key) : null;
-    if(hit){
-      const sp = el('span','xref', token);
-      bindXref(sp, hit);
-      frag.appendChild(sp);
-    }else{
-      frag.appendChild(document.createTextNode(token));
+  let m;
+  while((m = WORD_RE.exec(text))) tokens.push({ text:m[0], start:m.index, end:m.index + m[0].length });
+
+  let last = 0, i = 0;
+  while(i < tokens.length){
+    let matched = false;
+    // try the longest possible phrase first (so a 2-word entry wins over its first word alone)
+    for(let L = Math.min(limit, tokens.length - i); L >= 1; L--){
+      const span = tokens.slice(i, i + L);
+      const key = span.map(t => norm(t.text)).join(' ');
+      if(!key || key === selfNorm) continue;
+      const hit = map.get(key);
+      if(hit){
+        const start = span[0].start, end = span[span.length - 1].end;
+        if(last < start) frag.appendChild(document.createTextNode(text.slice(last, start)));
+        const sp = el('span','xref', text.slice(start, end));
+        bindXref(sp, hit);
+        frag.appendChild(sp);
+        last = end;
+        i += L;
+        matched = true;
+        break;
+      }
     }
-    last = end;
+    if(!matched) i++;
   }
   if(last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
   return frag;
