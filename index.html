@@ -87,6 +87,48 @@
 
   .xref{ color:var(--xref); background:var(--xref-bg); border-radius:4px; padding:0 2px; cursor:pointer; font-weight:600; }
 
+  .pending{
+    margin-top:22px; background:var(--surface); border:1px solid var(--line); border-radius:13px;
+    padding:16px 18px;
+  }
+  .pending h3{ font-size:16px; color:var(--pine); margin-bottom:10px; }
+  .pending ul{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .pending li{
+    display:flex; justify-content:space-between; gap:10px; align-items:baseline;
+    font-size:14.5px; padding:8px 10px; background:var(--surface-soft); border:1px solid var(--line); border-radius:9px;
+  }
+  .pending .pw{ font-weight:500; color:var(--ink); overflow-wrap:anywhere; }
+  .pending .pby{ color:var(--pine); font-size:16px; font-weight:700; white-space:nowrap; }
+
+  .nf-hit{ padding:12px 16px; }
+  .nf-hit p{ margin:0 0 10px; font-size:14px; color:var(--muted); }
+  .nf-hit button{ font-family:inherit; cursor:pointer; border:1px solid var(--pine); background:var(--pine);
+    color:#F4F1E4; padding:9px 14px; border-radius:8px; font-size:13.5px; }
+  .nf-hit button:hover{ background:var(--pine-light); }
+
+  .nf{
+    position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center;
+    background:rgba(20,35,20,.45); padding:20px;
+  }
+  .nf.open{ display:flex; }
+  .nf-card{
+    width:min(420px,100%); background:var(--surface); border-radius:14px; border-top:5px solid var(--gold);
+    box-shadow:0 20px 60px rgba(20,35,20,.35); padding:22px 22px 20px; display:flex; flex-direction:column; gap:12px;
+  }
+  .nf-card h3{ font-size:19px; color:var(--pine); }
+  .nf-card p{ margin:0; font-size:14.5px; color:var(--ink); line-height:1.6; }
+  .nf-card .word{ color:var(--pine); font-weight:700; }
+  .nf-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:4px; flex-wrap:wrap; }
+  .nf-actions button{
+    font-family:inherit; cursor:pointer; padding:10px 16px; border-radius:9px; font-size:14px; font-weight:500;
+  }
+  .nf-actions .send{ border:1px solid var(--gold); background:var(--gold); color:#fff; }
+  .nf-actions .send:hover{ background:#a17124; }
+  .nf-actions .send:disabled{ opacity:.6; cursor:default; }
+  .nf-actions .cancel{ border:1px solid var(--line); background:var(--surface); color:var(--pine); }
+  .nf-actions .cancel:hover{ background:var(--surface-soft); }
+  .nf-msg{ font-size:13px; color:var(--pine-light); min-height:16px; }
+
   .xpop{
     position:fixed; z-index:90; max-width:min(320px,88vw); background:var(--pine); color:#F4F1E4;
     border-radius:10px; padding:11px 13px; font-size:13.5px; box-shadow:0 14px 34px rgba(20,35,20,.35);
@@ -95,24 +137,6 @@
   .xpop.show{ display:block; }
   .xpop b{ display:block; margin-bottom:3px; font-family:'Tiro Sinhala','Noto Serif Sinhala',Georgia,serif; font-size:15px; }
 
-  .login{
-    position:fixed; inset:0; z-index:50; background:var(--bg);
-    display:flex; align-items:center; justify-content:center; padding:20px;
-  }
-  .login.hidden{ display:none; }
-  .login-card{
-    width:min(380px, 100%); background:var(--surface); border:1px solid var(--line);
-    border-top:5px solid var(--pine); border-radius:14px; padding:26px 24px;
-    display:flex; flex-direction:column; gap:12px;
-  }
-  .login-card h1{ font-size:22px; color:var(--pine); }
-  .login-card p{ margin:0 0 4px; color:var(--muted); font-size:13.5px; }
-  .login-card input{
-    padding:12px; border:1px solid var(--line); border-radius:8px; font-family:inherit;
-    font-size:15px; background:var(--surface-soft);
-  }
-  .login-card input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
-  .login-msg{ min-height:18px; font-size:13px; color:var(--danger); }
   .btn{
     border:1px solid var(--pine); background:var(--pine); color:#F4F1E4;
     padding:11px 16px; border-radius:9px; font-size:14.5px; font-weight:500;
@@ -122,6 +146,13 @@
 
   footer{ text-align:center; color:var(--muted); font-size:12.5px; padding:18px 10px 26px; }
 
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
+    background:var(--pine); color:#F4F1E4; padding:11px 18px; border-radius:10px; font-size:14px;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:80; max-width:90vw;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
   @media (max-width:480px){
     .main{ padding:16px 12px 34px; }
     .card{ padding:16px; }
@@ -130,18 +161,7 @@
 </head>
 <body>
 
-<div class="login" id="login">
-  <form class="login-card" id="loginForm">
-    <h1>ශබ්දකෝෂ සෙවුම</h1>
-    <p>බැලීමට Login වන්න</p>
-    <input id="lEmail" type="email" required autocomplete="username" placeholder="Email">
-    <input id="lPass" type="password" required autocomplete="current-password" placeholder="Password">
-    <div class="login-msg" id="loginMsg"></div>
-    <button class="btn" type="submit" id="loginBtn">Login</button>
-  </form>
-</div>
-
-<div class="app" id="app" style="display:none">
+<div class="app" id="app">
   <header class="topbar">
     <h1>ශබ්දකෝෂ සෙවුම</h1>
     <p>වචනයක් සොයා අර්ථය බලන්න</p>
@@ -162,12 +182,26 @@
     </div>
 
     <div id="result"></div>
+    <div id="pendingSection"></div>
   </div>
 
   <footer>Copyrights - Amila Udawattha 2026</footer>
 </div>
 
 <div class="xpop" id="xpop"></div>
+<div class="toast" id="toast"></div>
+
+<div class="nf" id="nf">
+  <div class="nf-card">
+    <h3>කණගාටුයි</h3>
+    <p>“<span class="word" id="nfWord"></span>” වචනයේ අර්ථය දැනට ඇතුළත් කර නැත. නමුත් අර්ථය සොයා ඇතුළත් කිරීම සඳහා Admin වෙත වචනය යොමු කළ හැක.</p>
+    <div class="nf-msg" id="nfMsg"></div>
+    <div class="nf-actions">
+      <button type="button" class="cancel" id="nfCancel">වසන්න</button>
+      <button type="button" class="send" id="nfSend">Send to Admin</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ===== Supabase project (same one used by the editable dictionaries; this page only reads) ===== */
@@ -175,10 +209,19 @@ const SUPABASE_URL      = 'https://jcijglwpkfluyzrltimk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjaWpnbHdwa2ZsdXl6cmx0aW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4MzU3OTUsImV4cCI6MjA4MjQxMTc5NX0.dvT8OiyVEiYn_DhkMakmSq1Vvr4REDr0kYPnyqCtWHs';
 
 const $ = id => document.getElementById(id);
-let sb = null, session = null;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>{ t.className = 'toast'; }, 2500);
+}
+let sb = null;
 let lang = 'si';                 // 'si' or 'en'
 let dict = { si: [], en: [] };   // {word, meaning, examples[], note}
 let dictMap = { si: new Map(), en: new Map() };
+let pendingCounts = { si:{total:0, answered:0}, en:{total:0, answered:0} };
+let sentThisSession = { si: new Set(), en: new Set() };   // stops the same tab sending a word twice
 let activeIdx = -1;
 
 function el(tag, cls, text){
@@ -215,6 +258,14 @@ function computeMaxWords(map){
   map.forEach((_, k)=>{ const n = k.split(' ').length; if(n > max) max = n; });
   return max;
 }
+async function fetchPendingCounts(){
+  const [si, en] = await Promise.all([
+    sb.rpc('pending_word_counts', { p_lang: 'si' }),
+    sb.rpc('pending_word_counts', { p_lang: 'en' })
+  ]);
+  if(!si.error && si.data && si.data[0]) pendingCounts.si = si.data[0];
+  if(!en.error && en.data && en.data[0]) pendingCounts.en = en.data[0];
+}
 async function loadAll(){
   const [si, en] = await Promise.all([
     fetchTable('sinhala_dictionary', 'note'),
@@ -225,6 +276,7 @@ async function loadAll(){
   dictMap.en = new Map(en.map(e => [norm(e.word), e]));
   maxWords.si = computeMaxWords(dictMap.si);
   maxWords.en = computeMaxWords(dictMap.en);
+  await fetchPendingCounts();
 }
 
 /* ---------- suggestions (word field only) ---------- */
@@ -247,7 +299,12 @@ function closeSuggest(){ sugBox.classList.remove('open'); sugBox.innerHTML = '';
 function renderSuggest(list){
   sugBox.innerHTML = '';
   if(!list.length){
-    sugBox.appendChild(el('div','none','ගැළපෙන වචනයක් හමු නොවීය.'));
+    const box = el('div','nf-hit');
+    box.appendChild(el('p','','“' + q.value.trim() + '” ගැළපෙන වචනයක් හමු නොවීය.'));
+    const b = el('button','','Send to Admin'); b.type = 'button';
+    b.onclick = ()=>{ closeSuggest(); openNotFound(q.value.trim()); };
+    box.appendChild(b);
+    sugBox.appendChild(box);
   }else{
     list.forEach(e=>{
       const b = el('button', '', e.word);
@@ -264,8 +321,15 @@ q.addEventListener('input', ()=>{
   renderSuggest(suggestionsFor(term));
 });
 q.addEventListener('keydown', ev=>{
-  const items = Array.from(sugBox.querySelectorAll('button'));
-  if(!items.length) return;
+  const items = Array.from(sugBox.querySelectorAll('.suggest > button'));
+  if(!items.length){
+    if(ev.key === 'Enter' && letterCount(q.value.trim()) >= 2){
+      ev.preventDefault();
+      closeSuggest();
+      openNotFound(q.value.trim());
+    }
+    return;
+  }
   if(ev.key === 'ArrowDown'){ ev.preventDefault(); activeIdx = Math.min(activeIdx+1, items.length-1); }
   else if(ev.key === 'ArrowUp'){ ev.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); }
   else if(ev.key === 'Enter'){ ev.preventDefault(); (items[activeIdx] || items[0]).click(); return; }
@@ -277,6 +341,66 @@ document.addEventListener('click', ev=>{
   if(!ev.target.closest('.search-wrap')) closeSuggest();
 });
 
+/* ---------- "word not found -> send to admin" ---------- */
+const nf = $('nf');
+function openNotFound(term){
+  if(!term) return;
+  $('nfWord').textContent = term;
+  $('nfMsg').textContent = '';
+  nf.dataset.term = term;
+  nf.classList.add('open');
+}
+function closeNotFound(){ nf.classList.remove('open'); }
+$('nfCancel').onclick = closeNotFound;
+nf.addEventListener('click', ev=>{ if(ev.target === nf) closeNotFound(); });
+document.addEventListener('keydown', ev=>{ if(ev.key === 'Escape' && nf.classList.contains('open')) closeNotFound(); });
+
+$('nfSend').onclick = async ()=>{
+  const term = (nf.dataset.term || '').trim();
+  if(!term) return;
+  const key = norm(term);
+  if(dictMap[lang].has(key)){ $('nfMsg').textContent = 'මේ වචනය දැනටමත් ශබ්දකෝෂයේ ඇත.'; return; }
+  if(sentThisSession[lang].has(key)){
+    $('nfMsg').textContent = 'මේ වචනය මේ visit එකේදී දැනටමත් Admin වෙත යොමු කළා.';
+    return;
+  }
+  const btn = $('nfSend'); btn.disabled = true;
+  $('nfMsg').textContent = 'යවමින්...';
+  try{
+    const { error } = await sb.from('pending_words').insert({ lang, word:term });
+    if(error) throw error;
+    sentThisSession[lang].add(key);
+    pendingCounts[lang].total++;
+    renderPending();
+    closeNotFound();
+    toast(`“${term}” Admin වෙත යොමු කළා.`);
+  }catch(err){
+    $('nfMsg').textContent = 'යැවීමට නොහැකි විය: ' + (err.message || err);
+  }finally{
+    btn.disabled = false;
+  }
+};
+
+/* ---------- pending-word STATS only — never the actual words (they may be offensive) ---------- */
+function renderPending(){
+  const box = $('pendingSection');
+  const c = pendingCounts[lang] || { total:0, answered:0 };
+  box.innerHTML = '';
+  if(!c.total) return;
+  const wrap = el('div','pending');
+  wrap.appendChild(el('h3','','Admin වෙත යොමු කළ වචන'));
+  const ul = el('ul');
+  const li1 = document.createElement('li');
+  li1.appendChild(el('span','pw','යොමු කළ වචන'));
+  li1.appendChild(el('span','pby', String(c.total)));
+  const li2 = document.createElement('li');
+  li2.appendChild(el('span','pw','පිළිතුරු ලබා දී ඇත'));
+  li2.appendChild(el('span','pby', String(c.answered)));
+  ul.appendChild(li1); ul.appendChild(li2);
+  wrap.appendChild(ul);
+  box.appendChild(wrap);
+}
+
 /* ---------- language switch ---------- */
 function setLang(l){
   lang = l;
@@ -286,6 +410,7 @@ function setLang(l){
   q.placeholder = l === 'si' ? 'වචනයක් සොයන්න...' : 'Search a word...';
   closeSuggest();
   $('result').innerHTML = '';
+  renderPending();
   q.focus();
 }
 $('langSi').onclick = ()=>setLang('si');
@@ -402,45 +527,24 @@ function showEntry(e){
   box.appendChild(c);
 }
 
-/* ---------- login ---------- */
-function showLogin(msg){ $('login').classList.remove('hidden'); $('app').style.display = 'none'; $('loginMsg').textContent = msg || ''; }
-async function afterLogin(){
-  $('login').classList.add('hidden');
-  $('app').style.display = '';
+/* ---------- start up: public page, no login ---------- */
+async function init(){
   $('result').innerHTML = '<div class="empty-hint">දත්ත load වෙමින්...</div>';
+  if(!window.supabase){
+    $('result').innerHTML = '';
+    $('result').appendChild(el('div','no-hit','Supabase library එක load වී නැත. Internet connection එක බලා page එක refresh කරන්න.'));
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   try{
     await loadAll();
     $('result').innerHTML = '';
+    renderPending();
   }catch(err){
     $('result').innerHTML = '';
     $('result').appendChild(el('div','no-hit','දත්ත ගැනීමට නොහැකි විය: ' + (err.message || err)));
   }
   q.focus();
-}
-$('loginForm').addEventListener('submit', async ev=>{
-  ev.preventDefault();
-  if(!sb){ showLogin('Supabase library එක load වී නැත. Internet connection එක බලා page එක refresh කරන්න.'); return; }
-  const btn = $('loginBtn'); btn.disabled = true; $('loginMsg').textContent = '';
-  try{
-    const { data, error } = await sb.auth.signInWithPassword({ email:$('lEmail').value.trim(), password:$('lPass').value });
-    if(error){ $('loginMsg').textContent = error.message; return; }
-    session = data.session; $('lPass').value = '';
-    await afterLogin();
-  }catch(err){ $('loginMsg').textContent = err.message || String(err); }
-  finally{ btn.disabled = false; }
-});
-
-async function init(){
-  if(!window.supabase){ showLogin('Supabase library එක load වී නැත. Internet connection එක බලා page එක refresh කරන්න.'); return; }
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  sb.auth.onAuthStateChange((event, s)=>{
-    session = s;
-    if(event === 'SIGNED_OUT'){ dict = {si:[],en:[]}; dictMap = {si:new Map(),en:new Map()}; showLogin(''); }
-  });
-  const { data } = await sb.auth.getSession();
-  session = data.session;
-  if(session) await afterLogin();
-  else showLogin('');
 }
 init();
 </script>
